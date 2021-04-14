@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: CI
 
 on:
   push:
@@ -17,6 +17,10 @@ jobs:
       run: docker build . --file Dockerfile --tag ccminer:latest --no-cache
     - name: Docker image list
       run: docker images
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
     - name: Cache vdb
       uses: actions/cache@v2
       with:
