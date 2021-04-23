@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ linux ]
+  pull_request:
+    branches: [ linux ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: docker build . --file Dockerfile --tag ccminer:latest --no-cache
+    - name: Docker image list
+      run: docker images
+  security-scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Cache vdb
+      uses: actions/cache@v2
+      with:
+        path: |
+          ${{ github.workspace }}/vdb
+        key: ${{ runner.os }}
+    - name: Scan
+      uses: ShiftLeftSecurity/scan-action@master
+      env:
+        VDB_HOME: ${{ github.workspace }}/vdb
+        WORKSPACE: https://github.com/${{ github.repository }}/blob/${{ github.sha }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SCAN_AUTO_BUILD: true
+      with:
+        output: reports
+    - name: Upload scan reports
+      uses: actions/upload-artifact@v1.0.0
+      with:
+        name: shiftleft-scan-reports
+        path: reports
